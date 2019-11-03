@@ -138,9 +138,11 @@ let rec divide k sez =
  - : int list = [3; 4; 5; 1; 2]
 [*----------------------------------------------------------------------------*)
 
-let rec rotate = ()
-
-
+let rec rotate n sez =
+  if n = 0 then sez
+  else match sez with
+    | x :: xs -> rotate (n-1) (xs @ [x])
+    | [] -> []
 
 (*----------------------------------------------------------------------------*]
  Funkcija [remove x list] iz seznama izbriše vse pojavitve elementa [x].
@@ -165,7 +167,14 @@ let rec remove x sez =
  - : bool = false
 [*----------------------------------------------------------------------------*)
 
-let rec is_palindrome = ()
+let is_palindrome sez =
+  let rec preobrni acc sez =
+    match sez with
+      | [] -> acc
+      | x :: xs -> preobrni (x :: acc) xs
+  in
+  sez = preobrni [] sez
+
 
 (*----------------------------------------------------------------------------*]
  Funkcija [max_on_components] sprejme dva seznama in vrne nov seznam, katerega
@@ -176,7 +185,19 @@ let rec is_palindrome = ()
  - : int list = [5; 4; 3; 3; 4]
 [*----------------------------------------------------------------------------*)
 
-let rec max_on_components = ()
+let rec max_on_components acc s1 s2 =
+  let rec preobrni acc sez =
+  match sez with
+    | [] -> acc
+    | x :: xs -> preobrni (x :: acc) xs
+  in
+  match s1 with
+    | [] -> preobrni [] acc
+    | x :: xs -> 
+      match s2 with
+        | [] -> preobrni [] acc
+        | y :: ys -> max_on_components ((max x y) :: acc) xs ys
+
 
 (*----------------------------------------------------------------------------*]
  Funkcija [second_largest] vrne drugo največjo vrednost v seznamu. Pri tem se
@@ -188,4 +209,15 @@ let rec max_on_components = ()
  - : int = 10
 [*----------------------------------------------------------------------------*)
 
-let rec second_largest = ()
+let largest sez =
+  let rec pomozna n l =
+    match l with
+      | x :: xs -> pomozna (max n x) xs
+      | [] -> n
+  in match sez with
+   | x :: xs -> pomozna x xs
+   | [] -> 0
+
+
+let rec second_largest sez =
+  let naj = largest sez in let s2 = remove naj sez in largest s2
