@@ -20,7 +20,13 @@
  # dollar_to_euro (Dollar 0.5);;
  - : euro = Euro 0.4305
 [*----------------------------------------------------------------------------*)
+type euro = Euro of float
+type dollar = Dollar of float
 
+let dollar_to_euro_ratio = 1.10
+
+let euro_to_dollar (Euro x) = Dollar (x *. dollar_to_euro_ratio)
+let dollar_to_euro (Dollar x) = Euro (x /. dollar_to_euro_ratio)
 
 
 (*----------------------------------------------------------------------------*]
@@ -34,8 +40,18 @@
  # to_pound (Yen 100.);;
  - : currency = Pound 0.007
 [*----------------------------------------------------------------------------*)
+type currency = 
+  | Yen of float
+  | Pound of float
+  | Krona of float
+  | Frank of float
 
-
+let to_pound x = 
+  match x with
+    | Pound p -> Pound p
+    | Yen y -> Pound ( y *. 0.0072)
+    | Krona c -> Pound (c *. 0.0800)
+    | Frank f -> Pound (f *. 0.7800)
 
 (*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*]
  Želimo uporabljati sezname, ki hranijo tako cela števila kot tudi logične
@@ -56,31 +72,49 @@
 
  Nato napišite testni primer, ki bi predstavljal "[5; true; false; 7]".
 [*----------------------------------------------------------------------------*)
+type intbool_list =
+  | Nil
+  | Int of int * intbool_list
+  | Bool of bool * intbool_list
 
-
-
+let primer = Int(5,Bool(true,Bool(false,Int(7,Nil))))
 (*----------------------------------------------------------------------------*]
  Funkcija [intbool_map f_int f_bool ib_list] preslika vrednosti [ib_list] v nov
  [intbool_list] seznam, kjer na elementih uporabi primerno od funkcij [f_int]
  oz. [f_bool].
 [*----------------------------------------------------------------------------*)
 
-let rec intbool_map = ()
+let rec intbool_map  f_int f_bool ib_list =
+  match ib_list with
+    | Nil -> Nil
+    | Int (i, ibs) -> Int(f_int(i), intbool_map f_int f_bool ibs)
+    | Bool (b, ibs) -> Bool(f_bool(b), intbool_map f_int f_bool ibs)
 
 (*----------------------------------------------------------------------------*]
  Funkcija [intbool_reverse] obrne vrstni red elementov [intbool_list] seznama.
  Funkcija je repno rekurzivna.
 [*----------------------------------------------------------------------------*)
 
-let rec intbool_reverse = ()
+let  intbool_reverse ib_list = 
+  let rec pomozna acc ibs = 
+    match ibs with
+     | Nil -> acc
+     | Int(i, ibs) -> pomozna (Int(i,acc)) ibs
+     | Bool(b, ibs) -> pomozna (Bool(b,acc)) ibs
+  in pomozna Nil ib_list
 
 (*----------------------------------------------------------------------------*]
  Funkcija [intbool_separate ib_list] loči vrednosti [ib_list] v par [list]
  seznamov, kjer prvi vsebuje vse celoštevilske vrednosti, drugi pa vse logične
  vrednosti. Funkcija je repno rekurzivna in ohranja vrstni red elementov.
 [*----------------------------------------------------------------------------*)
-
-let rec intbool_separate = ()
+let intbool_separate ibs = 
+  let rec pomozna ibs ints bools =
+    match ibs with
+      | Nil -> (ints,bools)
+      | Int (i, ibs) -> pomozna ibs (i :: ints) bools
+      | Bool (b, ibs) -> pomozna ibs ints (b :: bools)
+  in pomozna (intbool_reverse ibs) [] []
 
 (*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*]
  Določeni ste bili za vzdrževalca baze podatkov za svetovno priznano čarodejsko
@@ -97,7 +131,8 @@ let rec intbool_separate = ()
  raziskovanje oz. historian, teacher in researcher. Definirajte tip
  [specialisation], ki loči med temi zaposlitvami.
 [*----------------------------------------------------------------------------*)
-
+type magic = Fire | Frost | Arcane
+type specialisation = Historian | Teacher | Researcher
 
 
 (*----------------------------------------------------------------------------*]
@@ -114,8 +149,12 @@ let rec intbool_separate = ()
  # professor;;
  - : wizard = {name = "Matija"; status = Employed (Fire, Teacher)}
 [*----------------------------------------------------------------------------*)
+type status =
+  | Newbie
+  | Student of magic * int
+  | Employed of magic * specialisation
 
-
+type wizard = {ime : string; status : status}
 
 (*----------------------------------------------------------------------------*]
  Želimo prešteti koliko uporabnikov posamezne od vrst magije imamo na akademiji.
@@ -127,8 +166,13 @@ let rec intbool_separate = ()
  # update {fire = 1; frost = 1; arcane = 1} Arcane;;
  - : magic_counter = {fire = 1; frost = 1; arcane = 2}
 [*----------------------------------------------------------------------------*)
+type magic_counter = {fire : int; frost : int; arcane : int}
 
-
+let update counter magic =
+ match magic with
+   | Fire -> { fire = counter.fire + 1; frost = counter.frost; arcane = counter.arcane}
+   | Frost -> { fire = counter.fire; frost = counter.frost + 1; arcane = counter.arcane}
+   | Arcane -> { fire = counter.fire; frost = counter.frost; arcane = counter.arcane + 1}
 
 (*----------------------------------------------------------------------------*]
  Funkcija [count_magic] sprejme seznam čarodejev in vrne števec uporabnikov
@@ -138,7 +182,12 @@ let rec intbool_separate = ()
  - : magic_counter = {fire = 3; frost = 0; arcane = 0}
 [*----------------------------------------------------------------------------*)
 
-let rec count_magic = ()
+let count_magic ws = 
+  let rec pomozna acc ws = 
+    match ws with
+      | [] -> acc
+      | w :: ws -> pomozna (update acc w) ws
+  in pomozna {fire = 0; frost = 0; arcane = 0} ws
 
 (*----------------------------------------------------------------------------*]
  Želimo poiskati primernega kandidata za delovni razpis. Študent lahko postane
@@ -154,4 +203,15 @@ let rec count_magic = ()
  - : string option = Some "Jaina"
 [*----------------------------------------------------------------------------*)
 
-let rec find_candidate = ()
+let rec find_candidate magic specialisation wizard_list =
+  match wizard_list with
+    | [] -> None
+    | w :: ws ->
+      match w.status with
+       | Newbie -> find_candidate magic specialisation ws
+       | Employed (m,s) -> find_candidate magic specialisation ws
+       | Student (m,i) -> if m <> magic then find_candidate magic specialisation ws else
+         match specialisation with
+         | Historian -> if 2 < i then Some w.ime else find_candidate magic specialisation ws
+         | Researcher -> if 3 < i then Some w.ime else find_candidate magic specialisation ws
+         | Teacher -> if 4 < i then Some w.ime else find_candidate magic specialisation ws
