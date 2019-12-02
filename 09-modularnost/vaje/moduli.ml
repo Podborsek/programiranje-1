@@ -53,9 +53,12 @@ module type NAT = sig
 
   val eq   : t -> t -> bool
   val zero : t
-  (* Dodajte manjkajoče! *)
-  (* val to_int : t -> int *)
-  (* val of_int : int -> t *)
+  val one : t
+  val plus : t -> t -> t
+  val minus : t -> t -> t
+  val times : t -> t -> t
+  val to_int : t -> int
+  val of_int : int -> t
 end
 
 (*----------------------------------------------------------------------------*]
@@ -68,10 +71,16 @@ end
 [*----------------------------------------------------------------------------*)
 
 module Nat_int : NAT = struct
-
   type t = int
-  let eq x y = failwith "later"
+
+  let eq x y = (x = y)
   let zero = 0
+  let one = 1
+  let plus x y = x + y
+  let minus x y = if (x-y) < 0 then failwith "Odstevas preveliko stevilo" else (x-y)
+  let times x y = x * y
+  let to_int x = x
+  let of_int x = if x < 0 then failwith "Negativna stevila niso naravna" else x
   (* Dodajte manjkajoče! *)
 
 end
@@ -90,10 +99,41 @@ end
 
 module Nat_peano : NAT = struct
 
-  type t = unit (* To morate spremeniti! *)
-  let eq x y = failwith "later"
-  let zero = () (* To morate spremeniti! *)
-  (* Dodajte manjkajoče! *)
+  type t = Zero | Succ of t
+  let rec eq x y = match (x,y) with
+    | (Zero, Zero) -> true
+    | (Succ x, Succ y) -> eq x y
+    | _ -> false
+  
+  let zero = Zero
+  let one = Succ(Zero)
+  let rec plus x y =
+    match x with
+    | Zero -> y
+    | Succ(x') -> plus x' (Succ y)
+  let rec minus x y =
+    match (x,y) with
+    | (Succ(x'), Succ(y')) -> minus x' y'
+    | (Succ(x'), Zero) -> Succ(x')
+    | (Zero, Succ(y')) -> failwith "Odstevas preveliko stevilo"
+    | (Zero, Zero) -> Zero
+  let rec times x y =
+    match y with
+    | Zero -> Zero
+    | Succ (Zero) -> x
+    | Succ(y') -> plus x (times x y')
+  
+  let rec of_int n =
+    if n < 0 then failwith "Negativna stevila niso naravna" else
+    match n with
+    | 0 -> Zero
+    | n' -> Succ(of_int n')
+  
+  let rec to_int x =
+    match x with
+    | Zero -> 0
+    | Succ(x') -> 1 + (to_int x')
+
 
 end
 
@@ -118,7 +158,12 @@ end
  - : int = 4950
 [*----------------------------------------------------------------------------*)
 
-let sum_nat_100 (module Nat : NAT) = ()
+let sum_nat_100 (module Nat : NAT) =
+  let rec sum acc current_nat =
+    if Nat.eq current_nat (Nat.of_int 100) then
+    acc else
+    sum (Nat.plus current_nat acc) (Nat.plus Nat.one current_nat)
+  in Nat.to_int (sum Nat.zero Nat.zero)
 
 (*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*]
  Now we follow the fable told by John Reynolds in the introduction.
@@ -133,7 +178,14 @@ let sum_nat_100 (module Nat : NAT) = ()
 module type COMPLEX = sig
   type t
   val eq : t -> t -> bool
-  (* Dodajte manjkajoče! *)
+  val zero : t
+  val one : t
+  val i : t
+  val neg : t -> t
+  val con : t -> t
+  val plus : t -> t -> t
+  val times : t -> t -> t
+
 end
 
 (*----------------------------------------------------------------------------*]
@@ -145,8 +197,14 @@ module Cartesian : COMPLEX = struct
 
   type t = {re : float; im : float}
 
-  let eq x y = failwith "later"
-  (* Dodajte manjkajoče! *)
+  let eq x y = (x.re = y.re && x.im = y.im)
+  let zero = {re = 0.; im = 0.}
+  let one = {re = 1.; im = 0.}
+  let i = {re = 0.; im = 1.}
+  let neg x = {re = 0. -. x.re; im = 0. -. x.im}
+  let con x = {re = x.re; im = 0. -. x.im}
+  let plus x y = {re = x.re +. y.re; im = x.im +. y.im}
+  let times  x y = {re = (x.re *. y.re) -. (x.im *. y.im); im = x.re *. y.im +. x.im *. y.re}
 
 end
 
@@ -168,7 +226,13 @@ module Polar : COMPLEX = struct
   let deg_of_rad rad = (rad /. pi) *. 180.
 
   let eq x y = failwith "later"
-  (* Dodajte manjkajoče! *)
+  let zero = {magn = 0.; arg = 0.}
+  let one = {magn = 1.; arg = 0.}
+  let i = {magn = 1.; arg = acos 0.}
+  let neg x = {magn = 1.; arg = x.arg +. pi}
+  let con x = x
+  let plus x y = x
+  let times x y = {magn = x.magn *. y.magn; arg = x.arg +. y.arg}
 
 end
 
@@ -185,7 +249,14 @@ end
  Modul naj vsebuje prazen slovar [empty] in pa funkcije [get], [insert] in
  [print] (print naj ponovno deluje zgolj na [(string, int) t].
 [*----------------------------------------------------------------------------*)
+module type DICT = sig
+  type ('key, 'value) t
 
+  val empty : ('key, 'value) t
+  val get : 'key -> ('key, 'value) t -> 'value option
+  val insert : 'key -> 'value -> ('key, 'value) t -> ('key, 'value) t
+  val print : (string, int) t -> unit
+end
 
 (*----------------------------------------------------------------------------*]
  Funkcija [count (module Dict) list] prešteje in izpiše pojavitve posameznih
