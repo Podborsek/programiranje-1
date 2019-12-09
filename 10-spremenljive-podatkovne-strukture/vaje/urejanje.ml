@@ -8,7 +8,11 @@
  # let l = randlist 10 10 ;;
  val l : int list = [0; 1; 0; 4; 0; 9; 1; 2; 5; 4]
 [*----------------------------------------------------------------------------*)
-
+let randlist len max =
+    let rec pom len max acc =
+    if len <= 0 then acc
+    else pom (len - 1) max ((Random.int max) :: acc)
+    in pom len max []
 
 (*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*]
  Sedaj lahko s pomočjo [randlist] primerjamo našo urejevalno funkcijo (imenovana
@@ -34,13 +38,24 @@
  # insert 7 [];;
  - : int list = [7]
 [*----------------------------------------------------------------------------*)
-
+let insert y xs =
+    let rec pom y ls ds =
+        match ds with
+        | [] -> List.rev_append ls [y] (* To se da vrjetn mal izboljsta z rev (y::ls) *)
+        | d :: ds' -> if y <= d then List.rev_append ls (y :: d :: ds')
+                    else pom y (d :: ls) ds'
+    in pom y [] xs
 
 (*----------------------------------------------------------------------------*]
  Prazen seznam je že urejen. Funkcija [insert_sort] uredi seznam tako da
  zaporedoma vstavlja vse elemente seznama v prazen seznam.
 [*----------------------------------------------------------------------------*)
-
+let insert_sort xs =
+    let rec pom xs us =
+        match xs with
+        | [] -> us
+        | x :: xs' -> pom xs' (insert x us)
+    in pom xs []
 
 
 (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*]
@@ -52,6 +67,35 @@
  najmanjši element v [list] in seznam [list'] enak [list] z odstranjeno prvo
  pojavitvijo elementa [z]. V primeru praznega seznama vrne [None]. 
 [*----------------------------------------------------------------------------*)
+let min_and_rest' xs = (* To ni prov, ker uredi*)
+    let us = insert_sort xs in
+    match us with
+    | [] -> None
+    | u :: us' -> Some (u, us')
+
+let min_and_rest'' xs = (* Ta tud ne dela*)
+    let rec pom x ls ds =
+        match ds with
+        | [] -> Some (x, List.rev ls)
+        | d :: ds' -> if x <= d then pom x (d :: ls) ds'
+                    else pom d (x :: ls) ds
+    in match xs with
+        | [] -> None
+        | x :: xs' -> pom x [] xs'
+
+let min_and_rest xs = (* Ta dela kr uredu *)
+    let rec je_manjsi m xs =
+        match xs with
+        | [] -> true
+        | x :: xs' -> if x < m then false else je_manjsi m xs'
+    in
+    let rec pom ls ds =
+        match ds with
+        | [] -> None
+        | d :: ds' -> 
+            if (je_manjsi d ds') then Some (d, List.rev_append ls ds')
+            else pom (d :: ls) ds'
+    in pom [] xs
 
 
 (*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*]
@@ -71,8 +115,12 @@
  Funkcija [selection_sort] je implementacija zgoraj opisanega algoritma.
  Namig: Uporabi [min_and_rest] iz prejšnje naloge.
 [*----------------------------------------------------------------------------*)
-
-
+let selection_sort xs =
+    let rec pom xs us =
+        match (min_and_rest xs) with
+        | None -> List.rev us
+        | Some (m, ost) -> pom ost (m :: us)
+    in pom xs []
 
 (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*]
  Urejanje z Izbiranjem na Tabelah
@@ -100,7 +148,10 @@
  # test;;
  - : int array = [|0; 4; 2; 3; 1|]
 [*----------------------------------------------------------------------------*)
-
+let swap a i j =
+    let z = a.(i) in
+    a.(i) <- a.(j);
+    a.(j) <- z
 
 (*----------------------------------------------------------------------------*]
  Funkcija [index_min a lower upper] poišče indeks najmanjšega elementa tabele
@@ -108,7 +159,13 @@
  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  index_min [|0; 2; 9; 3; 6|] 2 4 = 4
 [*----------------------------------------------------------------------------*)
-
+let index_min a low up =
+    let cur_ind = ref low in
+    for i = (low + 1) to up
+    do
+        if a.(i) < a.(!cur_ind) then cur_ind := i
+    done;
+    !cur_ind
 
 (*----------------------------------------------------------------------------*]
  Funkcija [selection_sort_array] implementira urejanje z izbiranjem na mestu. 
@@ -116,4 +173,4 @@
  Namig: Za testiranje uporabi funkciji [Array.of_list] in [Array.to_list]
  skupaj z [randlist].
 [*----------------------------------------------------------------------------*)
-
+let selection_sort_array a = failwith "TO DO"
