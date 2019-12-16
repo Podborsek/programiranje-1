@@ -26,7 +26,41 @@
 #     >>> a
 #     [10, 2, 0, 4, 11, 15, 17, 5, 18]
 ###############################################################################
+'''def pivot(a,start,end):
+    piv = a[start]
+    piv_ind = start
+    li = start
+    di = end
+    for i in range(1, end-start):
+        if piv <= a[start + i]:
+            li += 1
+        else:
+            for j in range(li,di):
+                if piv <= a[di - j]:
+'''
+def pivot(table, start, end):
+    li = start # start + 0
+    di = end # start + end
+    pivot = table[start]
 
+    while li < di:
+        if table[li + 1] < pivot:
+            li += 1
+        elif table[di] >= pivot:
+            di -= 1
+        else:
+            table[li + 1], table[di] = table[di], table[li + 1]
+    
+    table[start] = table[di]
+    table[di] = pivot
+    return di
+    
+
+
+
+a = [10, 4, 5, 15, 11, 2, 17, 0, 18]
+print(pivot(a,1,7))
+print(a)
 
 
 ###############################################################################
@@ -43,7 +77,23 @@
 # element po velikosti. Funkcija sme spremeniti tabelo [a]. Cilj naloge je, da
 # jo rešite brez da v celoti uredite tabelo [a].
 ###############################################################################
+'''
+neki ne dela
+def kth_element(a, k, start=0, end=None):
+    if end is None:
+        end = len(a) - 1
 
+    x = pivot(a, 0, len(a) - 1)
+    if x == k:
+        return a[x]
+    elif x > k:
+        return kth_element(a, k, start, x)
+    else:
+        return kth_element(a, k - x, x, end )
+
+a = [10, 4, 5, 15, 11, 3, 17, 2, 18]
+print(kth_element(a,3))
+'''
 
 
 ###############################################################################
@@ -59,7 +109,16 @@
 #     >>> quicksort(a)
 #     [2, 3, 4, 5, 10, 11, 15, 17, 18]
 ###############################################################################
-
+def quicksort(a, start=0, end=None):
+    if end is None:
+        end = len(a) - 1
+    
+    if start >= end:
+        return
+    else:
+        x = pivot(a, start, end)
+        quicksort(a, start, x-1)
+        quicksort(a, x + 1, end)
 
 
 ###############################################################################
@@ -84,9 +143,28 @@
 #     [1,1,2,3,3,4,5,5,6,7,7,10]
 #
 ###############################################################################
+def zlij(target,begin,end, l1, l2):
+    i1, i2 = 0,0
+    for i in range(begin, end):
+        if i1 >= len(l1):
+            target[i] = l2[i2]
+            i2 += 1
+        elif i2 >= len(l2):          
+            target[i] = l1[i1]
+            i1 += 1
+        elif l1[i1] <= l2[i2]:
+            target[i] = l1[i1]
+            i1 += 1
+        else:
+            target[i] = l2[i2]
+            i2 += 1
+    return target
 
-
-
+list_1 = [1,3,5,7,10]
+list_2 = [1,2,3,4,5,6,7]
+target = [-1 for _ in range(len(list_1) + len(list_2))]
+zlij(target, 0, len(target), list_1, list_2)
+print(target)
 ###############################################################################
 # Tabelo želimo urediti z zlivanjem (merge sort). 
 # Tabelo razdelimo na polovici, ju rekurzivno uredimo in nato zlijemo z uporabo
@@ -102,3 +180,23 @@
 # >>> mergesort(a)
 # [2, 3, 4, 5, 10, 11, 15, 17, 18]
 ###############################################################################
+
+a = [10, 4, 5, 15, 11, 3, 17, 2, 18] 
+
+def mergesort(a):
+    if len(a) <= 1:
+        return a
+    else:
+        b = len(a) // 2
+        return zlij(a, 0, len(a), mergesort(a[:b]), mergesort(a[b:]))
+
+print(mergesort(a))
+
+
+import random
+r1 = [random.randint(0,100000) for i in range(50000)]
+r2 = r1
+quicksort(r1)
+#print(r1)
+mergesort(r2)
+print(r1 == r2)
