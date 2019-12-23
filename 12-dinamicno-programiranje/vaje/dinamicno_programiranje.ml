@@ -21,6 +21,29 @@ let test_matrix =
      [| 2 ; 4 ; 5 |];
      [| 7 ; 0 ; 1 |] |]
 
+let max_cheese matrika =
+  let visina = Array.length matrika in 
+  let sirina = Array.length matrika.(0) in 
+  let memo = Array.make_matrix visina sirina 0 in
+  let rec poracunaj_celico (vr:int) (st:int) =
+    if st = -1 then ()
+    else (
+      let desno = if st = sirina - 1 then 0 else memo.(vr).(st+1) in
+      let dol = if vr = visina - 1 then 0 else memo.(vr+1).(st) in
+      memo.(vr).(st) <- (matrika.(vr).(st) + (max desno dol));
+      poracunaj_celico vr (st-1)
+    )
+  in
+  let rec vrsticno (vr:int) =
+    if vr = -1 then ()
+    else (
+      poracunaj_celico vr (sirina - 1);
+      vrsticno (vr - 1)
+    )
+  in
+  vrsticno (visina -1);
+  memo.(0).(0)
+  
 (*----------------------------------------------------------------------------*]
  Rešujemo problem sestavljanja alternirajoče obarvanih stolpov. Imamo štiri
  različne tipe gradnikov, dva modra in dva rdeča. Modri gradniki so višin 2 in
@@ -36,6 +59,15 @@ let test_matrix =
  # alternating_towers 10;;
  - : int = 35
 [*----------------------------------------------------------------------------*)
+let alternating_towers h =
+  let m = Array.make h 0 in
+  let r = Array.make h 0 in
+  let rec modri l =
+    ()
+  and rdeci l =
+    ()
+  in
+  
 
 
 (*----------------------------------------------------------------------------*]
