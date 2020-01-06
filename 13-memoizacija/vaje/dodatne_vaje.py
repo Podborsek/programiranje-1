@@ -38,7 +38,7 @@ def najdaljse_narascajoce_podzaporedje(sez):
 # pa v nobenem primeru ne more, saj je zagrajen.
 ###############################################################################
 
-soba = [[0, 1, 0, 0, 2],
+test = [[0, 1, 0, 0, 2],
         [0, 2, 2, 0, 0],
         [0, 0, 2, 2, 0],
         [2, 0, 0, 2, 0],
@@ -47,4 +47,26 @@ soba = [[0, 1, 0, 0, 2],
 
 
 def pobeg(soba, pozicija, koraki):
-    return None
+    visina = len(soba)
+    sirina = len(soba[0])
+    x1,y1 = pozicija
+
+    def isci(x,y,koraki):
+        if soba[y][x] == 1:
+            return True
+        elif koraki == 0:
+            return False
+        else:
+            for (a,b) in [(x-1,y),(x+1,y),(x,y-1),(x,y+1)]:
+                if 0 <= a <= sirina and 0 <= b <= visina:
+                    vrednost = soba[b][a]
+                    if vrednost == 2:
+                        print("X")
+                    elif vrednost == 1:
+                        return True
+                    else:
+                        isci(a,b,koraki -1)
+    
+    return isci(x1,y1,koraki)
+
+print(pobeg(test, (3,1), 10))
