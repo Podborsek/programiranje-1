@@ -36,12 +36,7 @@ let eksponent x p =
         | p :: ps' -> if p = 2 then pom org (cur * cur) ps' else pom org (org * cur) ps'
     in pom x x ps
 
-
-
-
-
-
-
+(* 2. *)
 
 type 'a mm_drevo =
     | Prazno
@@ -80,6 +75,8 @@ let rec seznam_iz_multimnozice drevo =
     | Prazno -> []
     | Node (l,x,n,d) -> (seznam_iz_multimnozice l) @ (ponovi n x) @ (seznam_iz_multimnozice d)
 
+(*
+
 let seznam_iz_multimnozice' drevo =
     (*Treba je prit skrajno desno *)
     let rec pom leva drevo_d acc desno =
@@ -93,3 +90,5 @@ let seznam_iz_multimnozice' drevo =
         |
 
     in pom drevo [] true
+
+*)

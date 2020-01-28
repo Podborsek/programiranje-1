@@ -32,18 +32,36 @@ let kompozitum f g = (fun x -> g (f x))
    tipom /'a drevo/ z enim konstruktorjem, ki sprejme:
    - vrednost (koren) tipa /'a/ in
    - seznam (gozd) dreves tipa /'a drevo/. *)
-type 'a drevo = DopolniMe
+type 'a drevo = Drevo of 'a * 'a drevo list
+
+let t = Drevo(1,[])
+let t' = Drevo(2,[t;t])
+let t'' = Drevo(3,[Drevo(-1,[]); t'; Drevo(0,[])])
 
 (* 2.2) Napišite funkcijo, ki vrne koren danega rožnega drevesa. *)
-let koren = failwith "dopolni me"
+let koren = function
+    | Drevo(x,_) -> x
 
 (* 2.3) Napišite funkcijo, ki preveri, ali drevo celih števil vsebuje kakšno negativno število. *)
-let kaksno_negativno = failwith "dopolni me"
+let rec zdruzi xs ys =
+    match xs with
+    | [] -> ys
+    | x :: xs' -> zdruzi xs' (x :: ys)
+
+let kaksno_negativno d =
+    let rec pom = function
+        | [] -> false
+        | Drevo(x,ds) :: ost -> if x < 0 then true else pom (zdruzi ds ost)
+    in match d with
+        | Drevo(x,ds) -> if x < 0 then true else pom ds
 
 (* 2.4) Sestavite funkcijo, ki sprejme naravno število ter sestavi (poljubno)
    drevo, ki ima toliko otrok.
    Namig: napišite pomožno funkcijo, ki ustvari poljuben seznam dane dolžine. *)
-let drevo_z_veliko_otroci = failwith "dopolni me"
+let drevo_z_veliko_otroci n =
+    let rec pom n x =
+        if n = 0 then [] else x :: pom (n-1) x
+    in let sez = pom n (Drevo(n,[])) in Drevo(1,sez)
 
 (* 2.5) Sestavite funkcijo, ki izračuna število vseh vozlišč v drevesu.
    Če želite vse točke, mora biti funkcija repno rekurzivna.

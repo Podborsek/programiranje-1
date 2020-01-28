@@ -9,16 +9,36 @@ primer = [
 ]
 
 
-def pobeg(mesta):
+def pobeg(zemljevid):
     #Upostevam: lokacijo, denar
-    dolzina = len(mesta)
+    cilj = len(zemljevid)
 
-    def f(lok, denar):
-        if lok > dolzina and denar >= 0:
-            return [lok]
-        elif lok > dolzina:
-            return None
+    def pom(mesto, denar):
+        if cilj <= mesto :
+            if 0 <= denar:
+                return [mesto]
+            else:
+                return None
         else:
             mozne = []
-            for (cilj, cena) in mesta[lok]:
-                
+            for (dest, cena) in zemljevid[mesto]:
+                beg = pom(dest, denar + cena)
+                if beg is not None:
+                    mozne.append(beg)
+            if len(mozne) == 0:
+                return None
+            else:
+                return [mesto] + sorted(mozne, key=len)[0]
+
+    return pom(0,0)
+            
+
+'''
+def najkrajsi(seznami):
+    dolzina = min([len(x) for x in seznami])
+    for sez in seznami:
+        if dolzina == len(sez):
+            return sez
+'''        
+
+print(pobeg(primer))

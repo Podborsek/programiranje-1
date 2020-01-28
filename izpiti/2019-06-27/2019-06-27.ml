@@ -39,7 +39,7 @@ let eval_poly pol x =
 let test_pol = [3; -2; 0; 1]
 
 
-
+(*2*)
 
 
 type najemnik = string
@@ -57,13 +57,25 @@ let rec obdelovalec_vrta x =
     | Oddan(y,(v,vs)) -> obdelovalec_vrta v
     | Prost -> None
 
-let rec globina_oddajanja v =
-    match v with
-    | Obdelovan(y) -> 0
+let rec globina_oddajanja = function
+    (*Mogoce problem pri tretji varianti ce je vs prazn*)
     | Prost -> 0
-    | Oddan(y,(v',vs)) -> 1
+    | Obdelovan(_) -> 0
+    | Oddan(_,(v,vs)) -> 1 + List.fold_left max (globina_oddajanja v) (List.map globina_oddajanja vs)
 
-let rec vsi_najemniki v =
-    let rec pom v acc =
-        match v with
-        | Prost -> acc
+
+let rec v_uporabi = function
+    | Prost -> false
+    | Obdelovan(_) -> true
+    | Oddan(_,(v,vs)) -> List.fold_left (||) (v_uporabi v) (List.map v_uporabi vs)
+
+let rec vsi_najemniki = function
+    | Prost -> []
+    | Obdelovan(x) -> [x]
+    | Oddan(y,(v,vs)) -> y :: (List.fold_left (fun a b -> a @ (vsi_najemniki b)) (vsi_najemniki v) (vs))
+
+
+let rec vsi_obdelovalci = function
+    | Prost -> []
+    | Obdelovan(x) -> [x]
+    | Oddan(_,(v,vs)) -> (List.fold_left (fun a b -> a @ (vsi_obdelovalci b)) (vsi_obdelovalci v) (vs))
